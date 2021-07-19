@@ -1,0 +1,52 @@
+# Copyright 2019 The SEED Authors
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+FROM tensorflow/tensorflow:2.3.0-custom-op-gpu-ubuntu16 as grpc_compile
+RUN git clone https://github.com/tensorflow/custom-op.git
+WORKDIR custom-op
+
+RUN ./configure.sh
+
+RUN echo '\n\
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")\n\
+\n\
+http_archive(\n\
+    name = "com_google_protobuf",\n\
+    strip_prefix = "protobuf-3.9.1",\n\
+    urls = [\n\
+      "https://github.com/protocolbuffers/protobuf/archive/v3.9.1.tar.gz"\n\
+    ],\n\
+)\n\
+\n\
+http_archive(\n\
+    name = "com_github_grpc_grpc",\n\
+    urls = [\n\
+        "https://github.com/grpc/grpc/archive/ac1c5de1b36da4a1e3d72ca40b0e43f24266121a.tar.gz",\n\
+    ],\n\
+    strip_prefix = "grpc-ac1c5de1b36da4a1e3d72ca40b0e43f24266121a",\n\
+)\n\
+\n\
+load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")\n\
+grpc_deps()\n\
+load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")\n\
+grpc_extra_deps()' >> WORKSPACE
+
+ADD grpc/ grpc/
+RUN bazel build grpc:ops/grpc.so grpc:service_py_proto --incompatible_remove_legacy_whole_archive=0
+
+ADD . /seed_rl
+RUN cp bazel-bin/grpc/ops/grpc.so /seed_rl/grpc/grpc_cc.so
+RUN cp bazel-bin/grpc/service_pb2.py /seed_rl/grpc/service_pb2.py
+WORKDIR /seed_rl/
+RUN pip3 install tensorflow-gpu==2.3.0
+RUN PYTHONPATH=/ python3 grpc/python/ops_test.py

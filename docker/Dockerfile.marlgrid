@@ -1,0 +1,58 @@
+# Copyright 2019 The SEED Authors
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+FROM marlgrid_base
+#FROM tensorflow/tensorflow:2.3.0
+
+# Needed to disable interactive configuration by tzdata.
+RUN ln -fs /usr/share/zoneinfo/Europe/Dublin /etc/localtime
+
+RUN apt-get update && apt-get install -y \
+  git \
+  cmake \
+  build-essential \
+  libgl1-mesa-dev \
+  libsdl2-dev \
+  libsdl2-image-dev \
+  libsdl2-ttf-dev \
+  libsdl2-gfx-dev \
+  libboost-all-dev \
+  libdirectfb-dev \
+  libst-dev \
+  glee-dev \
+  mesa-utils \
+  xvfb \
+  x11vnc \
+  libsdl-sge-dev \
+  python3-pip \
+  libboost-all-dev \
+  libboost-python-dev \
+  tmux \
+  wget
+
+WORKDIR /
+RUN pip3 install tensorflow==2.3.0
+RUN pip3 install gym box2d
+RUN pip3 install tensorflow_probability==0.11.0
+#RUN pip3 install git+https://github.com/kandouss/marlgrid.git#egg=marlgrid
+
+RUN pip3 install neptune_client
+RUN pip3 install neptune-tensorboard
+RUN pip3 install git+https://gitlab.com/awarelab/mrunner
+RUN pip3 install psutil
+
+# Copy SEED codebase and SEED GRPC library.
+ADD . /seed_rl/
+RUN pip3 install /seed_rl/JointInternRepo/marlgrid/
+WORKDIR /seed_rl
+ENTRYPOINT ["python", "gcp/run.py"]

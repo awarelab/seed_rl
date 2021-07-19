@@ -1,0 +1,70 @@
+ contexts:
+   prometheus_cpu:
+     account: plgadvancedplanning
+     backend_type: slurm
+     cmd_type: sbatch
+     partition: plgrid
+     requirements_file: resources/requirements.txt
+     modules_to_load:
+     - plgrid/tools/singularity/stable
+     time: 1000
+     cpu: 20
+     mem: 60G
+     slurm_url: plgmizaw@pro.cyfronet.pl
+     storage_dir: /net/archive/groups/plggluna/plgmizaw
+     singularity_container: /net/people/plgmizaw/singularity/starcraft_cpu_2.sif
+
+   eagle_cpu:
+     account: plgadvancedplanning
+     backend_type: slurm
+     cmd_type: sbatch
+     partition: standard
+     requirements_file: resources/requirements.txt
+     time: 4320
+     cpu: 20
+     mem: 60G
+     slurm_url: plgmizaw@eagle.man.poznan.pl
+     storage_dir: /tmp/lustre/plgmizaw/
+     singularity_container: -H $PWD:/homeplaceholder -B /home/plgrid/plgmizaw/StarCraftII/:/homeplaceholder/StarCraftII -B $PWD/seed_rl/output_dir:/tmp/ -B $PWD/seed_rl/JointInternRepo/marlgrid:/marlgrid/ --env NEPUNEPWD=$PWD /home/plgrid/plgmizaw/singularity/starcraft_cpu_2.sif
+     
+   entropy_starcraft:
+     account: students
+     backend_type: slurm
+     cmd_type: sbatch
+     cpu: 12
+     gpu: 1
+     mem: 30G
+     nodes: 1
+     ntasks: 1
+     partition: common
+     qos: 20gpu3d
+     slurm_url: mizaw@entropy.mimuw.edu.pl
+     storage_dir: /home/mizaw/experiments/storage
+     singularity_container: --nv /home/pmilos/starcraft.sif
+     time: 4320
+     
+   entropy_cpu:
+     account: students
+     backend_type: slurm
+     cmd_type: sbatch
+     cpu: 24
+     gpu: 0
+     mem: 80G
+     nodes: 1
+     ntasks: 1
+     partition: common
+     qos: 20gpu3d
+     slurm_url: mizaw@entropy.mimuw.edu.pl
+     storage_dir: /home/mizaw/experiments/storage
+     singularity_container: /home/pmilos/starcraft_cpu_2.sif
+     time: 1000
+
+   test_kube:
+     backend_type: kubernetes
+     storage_dir: "/tmp"
+     registry_url: "https://gcr.io"
+     google_project_id: "warsaw-zpp"
+     #     gpu:  1
+     cpu: 1
+     mem: 2G
+ current_context: prometheus_cpu
